@@ -13,4 +13,8 @@ class HomeController {
     @GetMapping("/")
     fun index(): String =
         "home"
+
+    @GetMapping("/loginPage")
+    fun loginPage(): String =
+        "loginPage"
 }

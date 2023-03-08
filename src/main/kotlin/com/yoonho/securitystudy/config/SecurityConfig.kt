@@ -24,8 +24,9 @@ class SecurityConfig {
     @Bean
     fun configure(http: HttpSecurity): SecurityFilterChain =
         http
+            /* ::::::: 로그인Form 설정 ::::::: */
             .formLogin()
-                .loginPage("/loginPage")                    // 커스텀 로그인페이지
+//                .loginPage("/loginPage")                    // 커스텀 로그인페이지
                 .defaultSuccessUrl("/")               // 로그인성공시 이동할 경로
                 .failureUrl("/login")             // 로그인실패시 이동할 경로
                 // Custom LoginPage 생성시 tag id를 아래 설정한 값과 동일하게 맞춰주어야 한다.
@@ -45,10 +46,29 @@ class SecurityConfig {
                 }
                 .permitAll()    // 커스텀로그인페이지는 인증을 받지않아도 접근할 수 있도록 설정
                 .and()
+
+            /* ::::::: 로그아웃 설정 ::::::: */
+            .logout()
+                .logoutUrl("/logout")   // 기본적으로 POST방식으로 처리됨
+                .logoutSuccessUrl("/login")
+                // Spring Security에서는 기본적으로 LogoutHandler를 제공하나, 별도 추가적인 처리가 필요한 경우 설정
+                .addLogoutHandler { request, response, authentication ->
+                    val session = request.session
+                    session.invalidate()    // 세션 무효화처리
+                }
+                // logoutSuccessUrl과 동작은 유사하나 "Url"에서는 url이동액션만 가능하고, "Handler"에서는 다양한 동작가능
+                .logoutSuccessHandler { request, response, authentication ->
+                    response.sendRedirect("/login")
+                }
+                // 로그아웃시 삭제하고자하는 쿠키 설정
+                .deleteCookies("remember-me")
+                .and()
+
             .authorizeHttpRequests()
                 .anyRequest().authenticated()
                 .and()
             .build()
+
 
 //    @Bean
 //    fun configure(http: HttpSecurity): SecurityFilterChain =

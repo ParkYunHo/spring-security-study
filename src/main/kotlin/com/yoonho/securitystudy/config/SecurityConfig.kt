@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFailureHandler
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
@@ -17,7 +18,9 @@ import org.springframework.security.web.header.writers.frameoptions.XFrameOption
  */
 @Configuration
 @EnableWebSecurity
-class SecurityConfig {
+class SecurityConfig(
+    private val userDetailsService: UserDetailsService
+) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -62,6 +65,14 @@ class SecurityConfig {
                 }
                 // 로그아웃시 삭제하고자하는 쿠키 설정
                 .deleteCookies("remember-me")
+                .and()
+
+            /* ::::::: RememberMe 설정 ::::::: */
+            .rememberMe()
+                .rememberMeParameter("remember")    // 체크박스 파라미터명 설정 (default: remember-me)
+                .tokenValiditySeconds(3600)          // RememberMe 쿠키의 TTL (default: 14일)
+                .alwaysRemember(true)                   // RememberMe 기능이 활성화되지 않아도 항상 실행 (rememberMe 체크박스가 활성화 되지 않아도 동작시키는 옵션)
+                .userDetailsService(userDetailsService)                // 실제 인증을 처리하는 서비스
                 .and()
 
             .authorizeHttpRequests()

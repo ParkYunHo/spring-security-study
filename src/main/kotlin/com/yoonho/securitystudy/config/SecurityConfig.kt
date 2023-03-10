@@ -3,6 +3,7 @@ package com.yoonho.securitystudy.config
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.authorization.AuthorizationManager
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -77,19 +78,31 @@ class SecurityConfig(
         /* ::::::: 세션관리 설정 ::::::: */
         http
             .sessionManagement()
-            .maximumSessions(1)                     // 최대 허용가능 세션수 (default: -1 / 무제한 로그인 세션 허용)
+            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)   // 세션정책 (default: IF_REQUIRED)
+            .maximumSessions(1)                         // 최대 허용가능 세션수 (default: -1 / 무제한 로그인 세션 허용)
             // true: "현재 사용자 인증실패" 방식 / false: "기존 사용자 인증실패" 방식
-            .maxSessionsPreventsLogin(false)  // 동시 로그인 차단 옵션 (default: false / 기존 세션 만료)
-//            .expiredUrl("/expired")                      // 세션이 만료된 경우 이동할 페이지
+            .maxSessionsPreventsLogin(false)     // 동시 로그인 차단 옵션 (default: false / 기존 세션 만료)
+//            .expiredUrl("/expired")                                  // 세션이 만료된 경우 이동할 페이지
         http
             .sessionManagement()
             .sessionFixation()
             // 세션고정 보호 (none, migrateSession, newSession 옵션이 더 있으나 기본값으로 changeSessionId로 설정됨)
             .changeSessionId()
 
-
+        /* ::::::: 권한설정(인가) ::::::: */
         http
+            /*
+                WebSecurityConfigureAdapter가 deprecated 되어 상세메서드가 변경됨
+                 - .authorizeRequests() -> .authorizeHttpRequests()
+                 - .antMatchers() -> .requestMatchers()
+                 - .access("hasAnyRole('USER', 'ADMIN')") -> .hasAnyRole("USER", "ADMIN")
+                 requestMatchers는 위에 설정한 경로부터 체크하므로 "구체적인 경로"를 먼저 설정하고 "큰 범위의 경로"를 뒤에 설정해야 한다.
+             */
             .authorizeHttpRequests()
+            .requestMatchers("/shop/login", "/shop/users/**").permitAll()
+            .requestMatchers("/shop/mypage").hasRole("USER")
+            .requestMatchers("/shop/admin/pay").hasAnyRole("ADMIN")
+            .requestMatchers("/shop/admin/**").hasAnyRole("ADMIN", "SYS")
             .anyRequest().authenticated()
 
         return http.build()

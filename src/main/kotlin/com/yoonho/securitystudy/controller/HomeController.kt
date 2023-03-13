@@ -17,4 +17,16 @@ class HomeController {
     @GetMapping("/loginPage")
     fun loginPage(): String =
         "loginPage"
+
+    @GetMapping("/user")
+    fun user(): String =
+        "user"
+
+    @GetMapping("/admin/pay")
+    fun adminPay(): String =
+        "adminPay"
+
+    @GetMapping("/admin/**")
+    fun admin(): String =
+        "admin"
 }

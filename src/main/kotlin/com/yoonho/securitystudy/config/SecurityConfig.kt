@@ -11,10 +11,12 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
+import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFailureHandler
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache
 
 /**
  * @author yoonho
@@ -80,7 +82,15 @@ class SecurityConfig(
             // 로그인 성공시 Handler
             .successHandler { request, response, authentication ->
                 log.info(" >>> [successHandler] authentication: ${authentication.name}")
-                response.sendRedirect("/")
+
+                // 인증 Exception시 사용자의 경로,파라미터,header정보 등을 캐시에 저장함. (인증/인가 Exception 참고)
+                val requestCache = HttpSessionRequestCache()
+                val savedRequest = requestCache.getRequest(request, response)
+                val redirectUrl = savedRequest.redirectUrl
+                response.sendRedirect(redirectUrl)
+                //
+
+//                response.sendRedirect("/")
             }
             // 로그인 실패시 Handler
             .failureHandler { request, response, exception ->
@@ -148,32 +158,25 @@ class SecurityConfig(
             .requestMatchers("/shop/mypage").hasRole("USER")
             .requestMatchers("/shop/admin/pay").hasAnyRole("ADMIN")
             .requestMatchers("/shop/admin/**").hasAnyRole("ADMIN", "SYS")
+
+            // 인증실패시 redirect 할 커스텀 로그인페이지에 대해 인증을 허용함
+//            .requestMatchers("/login").permitAll()
             .anyRequest().authenticated()
+
+        /* ::::::: 인증/인가 Exception 설정 ::::::: */
+        http
+            .exceptionHandling()
+                // 인증실패시 ExceptionHandler
+                .authenticationEntryPoint { request, response, authException ->
+                    // Spring Security에서 제공하는 로그인페이지가 아닌 Custom 로그인페이지로 이동됨.
+                    response.sendRedirect("/login")
+                }
+                // 인가실패시 ExceptionHandler
+                .accessDeniedHandler { request, response, accessDeniedException ->
+                    // Spring Security에서 제공하는 Denied페이지가 아닌 Custom Denied페이지로 이동됨.
+                    response.sendRedirect("/denied")
+                }
 
         return http.build()
     }
-
-
-//    @Bean
-//    fun configure(http: HttpSecurity): SecurityFilterChain =
-//        http
-//            .formLogin()
-//                .loginPage("/login")
-//                .permitAll()
-//                .and()
-//            .httpBasic().disable()
-//            .csrf().disable()
-//            .authorizeHttpRequests()
-//                .requestMatchers("/").permitAll()
-//                .requestMatchers("/login/register").permitAll()
-//                .requestMatchers("/resources/**", "/static/**", "/css/**", "/js/**").permitAll()
-//                .anyRequest().authenticated()
-//                .and()
-//            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                .and()
-//            // H2 Console 허용
-//            .headers()
-//                .addHeaderWriter(XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN))
-//                .and()
-//            .build()
 }

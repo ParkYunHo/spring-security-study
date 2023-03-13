@@ -14,6 +14,14 @@ class HomeController {
     fun index(): String =
         "home"
 
+    @GetMapping("/login")
+    fun login(): String =
+        "login"
+
+    @GetMapping("/denied")
+    fun denied(): String =
+        "denied"
+
     @GetMapping("/loginPage")
     fun loginPage(): String =
         "loginPage"

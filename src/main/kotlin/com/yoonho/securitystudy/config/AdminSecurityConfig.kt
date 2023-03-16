@@ -12,26 +12,26 @@ import org.springframework.security.web.SecurityFilterChain
  * @author yoonho
  * @since 2023.03.16
  */
-@EnableWebSecurity
-@Configuration
-@Order(1)
+//@EnableWebSecurity
+//@Configuration
+//@Order(1)
 class AdminSecurityConfig {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    /**
-     * 다중 설정클래스 설정 (ADMIN용)
-     * <p>
-     *     - "/admin"으로 FilterChainProxy로 Request가 들어온 경우 해당 RequestMatcher에 매핑됨
-     */
-    @Bean
-    fun configureAdmin(http: HttpSecurity): SecurityFilterChain {
-        http
-            .authorizeHttpRequests()
-                .requestMatchers("/admin/**").authenticated()
-                .anyRequest().authenticated()
-                .and()
-            .httpBasic()
-
-        return http.build()
-    }
+//    /**
+//     * 다중 설정클래스 설정 (ADMIN용)
+//     * <p>
+//     *     - "/admin"으로 FilterChainProxy로 Request가 들어온 경우 해당 RequestMatcher에 매핑됨
+//     */
+//    @Bean
+//    fun configureAdmin(http: HttpSecurity): SecurityFilterChain {
+//        http
+//            .authorizeHttpRequests()
+//                .requestMatchers("/admin/**").authenticated()
+//                .anyRequest().authenticated()
+//                .and()
+//            .httpBasic()
+//
+//        return http.build()
+//    }
 }

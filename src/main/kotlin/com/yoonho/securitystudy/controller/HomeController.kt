@@ -1,5 +1,11 @@
 package com.yoonho.securitystudy.controller
 
+import jakarta.servlet.http.HttpSession
+import org.slf4j.LoggerFactory
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContext
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -9,10 +15,30 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 class HomeController {
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     @GetMapping("/")
-    fun index(): String =
-        "home"
+    fun index(session: HttpSession): String {
+
+        // SecurityContextHolder로부터 인증정보 획득
+        val auth: Authentication = SecurityContextHolder.getContext().authentication
+
+        // 세션에 저장된 SecurityContext 획득
+        val context: SecurityContext = session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY) as SecurityContext
+        val authBySession: Authentication = context.authentication
+
+        return "home"
+    }
+
+    @GetMapping("/thread")
+    fun thread(): String {
+        Thread {
+            val auth: Authentication = SecurityContextHolder.getContext().authentication
+            log.info(" >>> [thread] auth: $auth")
+        }.start()
+
+        return "thread"
+    }
 
     @GetMapping("/login")
     fun login(): String =
